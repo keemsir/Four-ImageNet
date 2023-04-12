@@ -1,14 +1,25 @@
-from setuptools import setup
-
-VERSION = "0.0.1"
+from setuptools import setup, find_namespace_packages
 
 setup(
-  name='Medical_Image_Processing',
-  version=VERSION,
-  url='https://github.com/keemsir/Medical_Image_Processing',
-  author='keemsir',
-  author_email='keemsir@gmail.com',
-  packages=['MIP'],
-  description='A library for processing the Medical image',
-  license='keemsir'
+    name='fournet',
+    packages=find_namespace_packages(where='module'),
+    version='1.0.0',
+    url='https://keemsir.github.io/',
+    author='Meangee.Keem',
+    author_email='keemsir@gmail.com',
+    install_requires=[
+        "torch",
+        "torchvision",
+        "numpy",
+        "pandas",
+        "matplotlib",
+        "util_msg"
+    ],
+    entry_points={
+        'console_scripts': [
+            'fournet_train = module.training:main',
+            'fournet_predict = module.predict:main'
+        ],
+    }
+
 )
