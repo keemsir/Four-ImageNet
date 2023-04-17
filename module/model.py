@@ -191,6 +191,98 @@ class CNN_img(nn.Module):
         
         return out
 
+    
+class CNN_img_V2(nn.Module):
+
+    def __init__(self):
+        super(CNN_img_V2, self).__init__()
+        self.keep_prob = 0.7 # 0.5
+
+        self.layer1 = nn.Sequential(
+            nn.Conv2d(264, 1, kernel_size=1, stride=1, padding="same", bias=False),
+            nn.ReLU()
+            #nn.MaxPool2d(kernel_size=2, stride=2)
+            )
+
+        self.layer2 = nn.Sequential(
+            nn.Conv2d(1, 32, kernel_size=3, stride=1, padding="same", bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=1))
+
+        self.layer3 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding="same", bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=1))
+
+        self.layer4 = nn.Sequential(
+            nn.Conv2d(64, 128, kernel_size=3, stride=1, padding="same", bias=False),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=1))
+
+        # Layer4 FC 29x29x128 inputs -> 1000 outputs
+        self.fc1 = nn.Linear(29 * 29 * 128, 1000, bias=False)
+        nn.init.xavier_uniform_(self.fc1.weight)
+
+        self.fc2 = nn.Linear(1000, 128, bias=False)
+        nn.init.xavier_uniform_(self.fc2.weight)
+
+        self.fc3 = nn.Linear(128, 64, bias=False)
+        nn.init.xavier_uniform_(self.fc2.weight)
+
+        self.fc4 = nn.Linear(64, 32, bias=False)
+        nn.init.xavier_uniform_(self.fc2.weight)
+
+        self.fc5 = nn.Linear(32, 1, bias=False)
+        nn.init.xavier_uniform_(self.fc2.weight)
+
+
+        self.layer5 = nn.Sequential(
+            self.fc1,
+            nn.BatchNorm1d(1000),
+            nn.ReLU(),
+            nn.Dropout(p=1 - self.keep_prob))
+        
+        self.layer6 = nn.Sequential(
+            self.fc2,
+            nn.BatchNorm1d(128),
+            nn.ReLU(),
+            nn.Dropout(p=1 - self.keep_prob))
+
+        self.layer7 = nn.Sequential(
+            self.fc3,
+            nn.BatchNorm1d(64),
+            nn.ReLU(),
+            nn.Dropout(p=1 - self.keep_prob))
+
+        self.layer8 = nn.Sequential(
+            self.fc4,
+            nn.BatchNorm1d(32),
+            nn.ReLU(),
+            nn.Dropout(p=1 - self.keep_prob))
+
+        self.layer9 = nn.Sequential(
+            self.fc5,
+            nn.BatchNorm1d(1))
+    
+
+    def forward(self, img, y):
+        out = self.layer1(img)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = self.layer4(out)
+
+        # Flatten them for FC
+        out = out.view(out.size(0), -1)
+        out = self.layer5(out)
+        out = self.layer6(out)
+        out = self.layer7(out)
+        out = self.layer8(out)
+        out = self.layer9(out)
+
+        return out
 
 
 class CNN_meta(nn.Module):
