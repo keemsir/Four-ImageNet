@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import KFold
 
 from module.dataset import MI_Dataset
-from module.model import CNN, EffNetNetwork, ResNet50Network, CNN_img, CNN_meta, EffNetNetwork_image, EffNetNetwork_meta
+from module.model import CNN, EffNetNetwork, ResNet50Network, CNN_img, CNN_img_V2, CNN_img_V3, CNN_img_V3w0, CNN_img_V2w0, CNN_meta, EffNetNetwork_image, EffNetNetwork_meta
 from module.utils import acc_rmse, acc_sampler_weight, post_weight
 from nn_utils import path_utils
 from util_msg import tele_msg, tele_img
@@ -90,6 +90,7 @@ class NetworkTrainer(object):
         # self.valid_acc = []
 
         self.best_rmse = None
+        self.best_tr_rmse = None
 
         # self.log_file = None
         self.deterministic = deterministic
@@ -269,13 +270,22 @@ class NetworkTrainer(object):
                 self.patience_f = self.PATIENCE
 
                 self.best_rmse = None
+                self.best_tr_rmse = None
                 
                 # Select network architecture
                 if self.network == 'CNN':
                     self.model = CNN().to(self.device)
-                if self.network == 'CNN_img':
+                elif self.network == 'CNN_img':
                     self.model = CNN_img().to(self.device)
-                if self.network == 'CNN_meta':
+                elif self.network == 'CNN_img_V2':
+                    self.model = CNN_img_V2().to(self.device)
+                elif self.network == 'CNN_img_V2w0':
+                    self.model = CNN_img_V2w0().to(self.device)
+                elif self.network == 'CNN_img_V3':
+                    self.model = CNN_img_V3().to(self.device)
+                elif self.network == 'CNN_img_V3w0':
+                    self.model = CNN_img_V3w0().to(self.device)
+                elif self.network == 'CNN_meta':
                     self.model = CNN_meta().to(self.device)
                 elif self.network == 'effnet':
                     self.model = EffNetNetwork().to(self.device)
@@ -351,15 +361,17 @@ class NetworkTrainer(object):
                     # self.save_path = os.path.join((self.output_folder, 'Fold{}_Epoch{}_ValRMSE_{:.2f}.pth'.format(self.fold+1, self.epoch+1, np.min(valid_acc))))
                     self.save_path = '{}/Fold{}_Epoch{}_ValRMSE_{:.2f}.pth'.format(self.output_folder, self.fold+1, self.epoch+1, np.min(valid_acc))
 
-                    # Update best_rmse
+                    # Update best_rmse of validation dataset
                     if not self.best_rmse:
                         self.best_rmse = valid_acc
+                        self.best_tr_rmse = train_acc
                         torch.save(self.model.state_dict(), self.save_path)
                         self.model_named = self.save_path
                         continue
 
                     if valid_acc < self.best_rmse:
                         self.best_rmse = valid_acc
+                        self.best_tr_rmse = train_acc
                         self.patience_f = self.PATIENCE
                         torch.save(self.model.state_dict(), self.save_path)
                         os.remove(self.model_named)
@@ -373,8 +385,12 @@ class NetworkTrainer(object):
                             print(stop_logs)
                             break
 
-                tele_msg(TOKEN=self.telegram_TOKEN, ID=self.telegram_ID, MSG=f"Training Completed.(Fold: {self.fold+1}/5) :thumbsup: \n final_logs -> {self.final_logs}, best validation rmse -> {np.min(self.all_val_rmse)}")
-                tele_img(TOKEN=self.telegram_TOKEN, ID=self.telegram_ID, IMG_PATH=self.progress_savepath)
+                try:
+                    tele_msg(TOKEN=self.telegram_TOKEN, ID=self.telegram_ID, MSG=f"Training Completed.(Fold: {self.fold+1}/5) :thumbsup: \n final_logs -> {self.final_logs}, best train RMSE -> {self.best_tr_rmse}, best validation RMSE -> {self.best_rmse}")
+                    tele_img(TOKEN=self.telegram_TOKEN, ID=self.telegram_ID, IMG_PATH=self.progress_savepath)
+                except Exception as e:
+                    print("Exception in telegram", e)
+                
                 torch.cuda.empty_cache()
 
 
