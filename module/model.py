@@ -223,19 +223,19 @@ class CNN_img_V2(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2, padding=1))
 
         # Layer4 FC 29x29x128 inputs -> 1000 outputs
-        self.fc1 = nn.Linear(29 * 29 * 128, 1000, bias=False)
+        self.fc1 = nn.Linear(29 * 29 * 128, 1000, bias=True)
         nn.init.xavier_uniform_(self.fc1.weight)
 
-        self.fc2 = nn.Linear(1000, 128, bias=False)
+        self.fc2 = nn.Linear(1000, 128, bias=True)
         nn.init.xavier_uniform_(self.fc2.weight)
 
-        self.fc3 = nn.Linear(128, 64, bias=False)
+        self.fc3 = nn.Linear(128, 64, bias=True)
         nn.init.xavier_uniform_(self.fc2.weight)
 
-        self.fc4 = nn.Linear(64, 32, bias=False)
+        self.fc4 = nn.Linear(64, 32, bias=True)
         nn.init.xavier_uniform_(self.fc2.weight)
 
-        self.fc5 = nn.Linear(32, 1, bias=False)
+        self.fc5 = nn.Linear(32, 1, bias=True)
         nn.init.xavier_uniform_(self.fc2.weight)
 
 
@@ -329,19 +329,19 @@ class CNN_img_V3(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2, padding=1))
 
         # Layer6 FC 8x8x8 inputs -> 256 outputs
-        self.fc1 = nn.Linear(8 * 8 * 8, 256, bias=False)
+        self.fc1 = nn.Linear(8 * 8 * 8, 256, bias=True)
         nn.init.xavier_uniform_(self.fc1.weight)
 
-        self.fc2 = nn.Linear(256, 128, bias=False)
+        self.fc2 = nn.Linear(256, 128, bias=True)
         nn.init.xavier_uniform_(self.fc2.weight)
 
-        self.fc3 = nn.Linear(128, 64, bias=False)
+        self.fc3 = nn.Linear(128, 64, bias=True)
         nn.init.xavier_uniform_(self.fc2.weight)
 
-        self.fc4 = nn.Linear(64, 32, bias=False)
+        self.fc4 = nn.Linear(64, 32, bias=True)
         nn.init.xavier_uniform_(self.fc2.weight)
 
-        self.fc5 = nn.Linear(32, 1, bias=False)
+        self.fc5 = nn.Linear(32, 1, bias=True)
         nn.init.xavier_uniform_(self.fc2.weight)
 
 
