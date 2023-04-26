@@ -187,6 +187,134 @@ class CNN_img(nn.Module):
         return out
 
 
+class CNN_V2(nn.Module):
+
+    def __init__(self):
+        super(CNN_V2, self).__init__()
+        self.keep_prob = 0.8 # 0.5
+        # shape: [?, 132, 113, 113]
+        self.layer1 = nn.Sequential(
+            nn.Conv2d(264, 132, kernel_size=3, stride=1, padding="same"),
+            nn.BatchNorm2d(132),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=1)
+            )
+
+        # shape: [?, 64, 57, 57]
+        self.layer2 = nn.Sequential(
+            nn.Conv2d(132, 64, kernel_size=3, stride=1, padding="same"),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=1))
+
+        # shape: [?, 32, 29, 29]
+        self.layer3 = nn.Sequential(
+            nn.Conv2d(64, 32, kernel_size=3, stride=1, padding="same"),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=1))
+
+        # shape: [?, 16, 15, 15]
+        self.layer4 = nn.Sequential(
+            nn.Conv2d(32, 16, kernel_size=3, stride=1, padding="same"),
+            nn.BatchNorm2d(16),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=1))
+
+        # shape: [?, 8, 8, 8]
+        self.layer5 = nn.Sequential(
+            nn.Conv2d(16, 8, kernel_size=3, stride=1, padding="same"),
+            nn.BatchNorm2d(8),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2, padding=1))
+
+        # Layer6 FC 8x8x8 inputs -> 256 outputs
+        self.fc1 = nn.Linear(8 * 8 * 8, 256, bias=False)
+        nn.init.xavier_uniform_(self.fc1.weight)
+
+        self.fc2 = nn.Linear(512, 256, bias=False)
+        nn.init.xavier_uniform_(self.fc2.weight)
+
+        self.fc3 = nn.Linear(256, 128, bias=False)
+        nn.init.xavier_uniform_(self.fc3.weight)
+
+        self.fc4 = nn.Linear(128, 64, bias=False)
+        nn.init.xavier_uniform_(self.fc4.weight)
+
+        self.fc5 = nn.Linear(64, 1, bias=False)
+        nn.init.xavier_uniform_(self.fc5.weight)
+
+
+        self.layer6 = nn.Sequential(
+            self.fc1,
+            nn.BatchNorm1d(256),
+            nn.ReLU(),
+            # nn.Dropout(p=1 - self.keep_prob)
+            )
+
+        self.meta_csv = nn.Sequential(
+            nn.Linear(17, 256),
+            nn.BatchNorm1d(256),
+            nn.ReLU(),
+            nn.Dropout(p=1 - self.keep_prob)
+            )
+
+
+        self.layer7 = nn.Sequential(
+            self.fc2,
+            # nn.BatchNorm1d(128),
+            nn.ReLU(),
+            nn.Dropout(p=1 - self.keep_prob))
+
+        self.layer8 = nn.Sequential(
+            self.fc3,
+            # nn.BatchNorm1d(64),
+            nn.ReLU(),
+            nn.Dropout(p=1 - self.keep_prob))
+
+        self.layer9 = nn.Sequential(
+            self.fc4,
+            # nn.BatchNorm1d(32),
+            nn.ReLU(),
+            nn.Dropout(p=1 - self.keep_prob))
+
+        self.layer10 = nn.Sequential(
+            self.fc5,
+            # nn.BatchNorm1d(1)
+            nn.ReLU())
+
+
+    def forward(self, img, emr):
+        out = self.layer1(img)
+        # print(out.shape)
+        out = self.layer2(out)
+        # print(out.shape)
+        out = self.layer3(out)
+        # print(out.shape)
+        out = self.layer4(out)
+        # print(out.shape)
+        out = self.layer5(out)
+        # print(out.shape)
+
+        # Flatten them for FC
+        out = out.view(out.size(0), -1)
+        # print(out.shape)
+        out = self.layer6(out)
+        out_csv = self.meta_csv(emr)
+        out = torch.cat((out, out_csv), dim=1)
+        # out = self.fc2F(out)
+        # print(out.shape)
+        out = self.layer7(out)
+        # # print(out.shape)
+        out = self.layer8(out)
+        # # print(out.shape)
+        out = self.layer9(out)
+        # # print(out.shape)
+        out = self.layer10(out)
+        # print(out.shape)
+
+        return out
+
 
 class CNN_img_V2(nn.Module):
 
